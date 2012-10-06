@@ -1,4 +1,4 @@
 yam
 ===
 
-yet another make for .net
+Yet another make for .net. A patch for MSBuild. 

@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReferenceResolveTask", "src\AssemblyReferenceResolveTask\ReferenceResolveTask.csproj", "{5D07702A-F08D-4692-9EA3-8A35C5655E1E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ut-reference-resolve-task", "test\ut-reference-resolve-task\ut-reference-resolve-task.csproj", "{7C535B0B-11F6-454C-8309-22B8598B7D2A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "yam-core", "src\yam-core\yam-core.csproj", "{AD5C4E91-C64D-472D-AF03-F61B3AF48D1E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5D07702A-F08D-4692-9EA3-8A35C5655E1E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5D07702A-F08D-4692-9EA3-8A35C5655E1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5D07702A-F08D-4692-9EA3-8A35C5655E1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5D07702A-F08D-4692-9EA3-8A35C5655E1E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7C535B0B-11F6-454C-8309-22B8598B7D2A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7C535B0B-11F6-454C-8309-22B8598B7D2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7C535B0B-11F6-454C-8309-22B8598B7D2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7C535B0B-11F6-454C-8309-22B8598B7D2A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AD5C4E91-C64D-472D-AF03-F61B3AF48D1E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD5C4E91-C64D-472D-AF03-F61B3AF48D1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD5C4E91-C64D-472D-AF03-F61B3AF48D1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD5C4E91-C64D-472D-AF03-F61B3AF48D1E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

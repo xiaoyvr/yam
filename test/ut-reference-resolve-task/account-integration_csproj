@@ -1,0 +1,137 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{8FC84B74-6503-408D-ACF0-F916BBF04FEE}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Account.Integration</RootNamespace>
+    <AssemblyName>Account.Integration</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Autofac, Version=1.4.4.561, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\libs\Autofac.dll</HintPath>
+    </Reference>
+    <Reference Include="Framework.Container, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\libs\Framework.Container.dll</HintPath>
+    </Reference>
+    <Reference Include="Framework.Container.API, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\libs\Framework.Container.API.dll</HintPath>
+    </Reference>
+    <Reference Include="Framework.Extensions, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\libs\Framework.Extensions.dll</HintPath>
+    </Reference>
+    <Reference Include="Framework.Model.API, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\libs\Framework.Model.API.dll</HintPath>
+    </Reference>
+    <Reference Include="Framework.Notification, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\libs\Framework.Notification.dll</HintPath>
+    </Reference>
+    <Reference Include="Framework.Notification.API, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\libs\Framework.Notification.API.dll</HintPath>
+    </Reference>
+    <Reference Include="Framework.Validation, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\libs\Framework.Validation.dll</HintPath>
+    </Reference>
+    <Reference Include="Framework.Validation.API, Version=2.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\libs\Framework.Validation.API.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Xml.Linq">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data.DataSetExtensions">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\ApplicationAssemblyInfo.cs">
+      <Link>Properties\ApplicationAssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="_ExtensonPoints\AccountIntegrationModule.cs" />
+    <Compile Include="AddClientToAssignee.cs" />
+    <Compile Include="AddContactsToAssigneeHandler.cs" />
+    <Compile Include="AddAssignmentsToAssigneeHandler.cs" />
+    <Compile Include="AssociateExtensions.cs" />
+    <Compile Include="CultureInfoOfCountries.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\data\populator\data-populator.csproj">
+      <Project>{2874713C-DAFE-4734-BF8D-56D3C78E5D3A}</Project>
+      <Name>data-populator</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\account-model\account-model.csproj">
+      <Project>{4C902FB4-8FC8-474D-BF75-7AD297DA03D0}</Project>
+      <Name>account-model</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\crm-model\crm-model.csproj">
+      <Project>{55804A35-780C-4587-B27B-575901117185}</Project>
+      <Name>crm-model</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\integration-api\integration-api.csproj">
+      <Project>{CBA3A916-5288-421F-B9C2-A3AC6C42B584}</Project>
+      <Name>integration-api</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\profile-integration\profile-integration.csproj">
+      <Project>{452F508A-121A-41B8-8338-9855F9ACAE71}</Project>
+      <Name>profile-integration</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\tax-core\tax-core.csproj">
+      <Project>{56537A7C-A725-4165-8550-304F26C9FF1F}</Project>
+      <Name>tax-core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\tax-profile-model\tax-profile-model.csproj">
+      <Project>{B2FBCBC0-4544-4C23-A2DB-95B129193CFE}</Project>
+      <Name>tax-profile-model</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ui-model\ui-model.csproj">
+      <Project>{3BD59BAA-B618-4B15-8DF2-933A7A2FBFF5}</Project>
+      <Name>ui-model</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
