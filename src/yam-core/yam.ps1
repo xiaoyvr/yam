@@ -8,5 +8,8 @@ if ($ptrSize = 8) {
 $version = 'v4.0.30319'
 $msbuild = "$env:windir\Microsoft.NET\Framework$bitness\$version\MSBuild.exe"
 $project = "C:\e x b\yam-c ore.csproj"
+# GetProjectOutputItems
 $result = &$msbuild yam.targets /t:GetProjectOutput /p:project=$project /nologo /v:m 
 write-host $result -f yellow
+
+# project regex in solution Project\("\{(?<Type>.{36})\}"\)\s*=\s*"(?<Name>.*)",\s*"(?<Path>.*)",\s*"\{(?<Id>.{36})\}"
