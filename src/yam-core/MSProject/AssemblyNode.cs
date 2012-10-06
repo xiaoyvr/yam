@@ -1,8 +1,8 @@
 using System;
 
-namespace Yam.Core
+namespace Yam.Core.MSProject
 {
-    public class AssemblyNode : IDependencyNode, IEquatable<AssemblyNode>
+    internal class AssemblyNode : IDependencyNode, IEquatable<AssemblyNode>
     {
         public string FullPath { get; set; }
 

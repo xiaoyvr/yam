@@ -1,12 +1,12 @@
 using System;
 
-namespace Yam.Core
+namespace Yam.Core.MSProject
 {
-    public interface IDependencyNode
+    internal interface IDependencyNode
     {
     }
 
-    public static class NodeExtensions
+    internal static class NodeExtensions
     {
         public static string GetPath(this IDependencyNode node)
         {

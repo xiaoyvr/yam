@@ -1,6 +1,6 @@
-namespace Yam.Core
+namespace Yam.Core.MSProject
 {
-    public class ProjectReference
+    internal class ProjectReference
     {
         public ProjectNode Node
         {

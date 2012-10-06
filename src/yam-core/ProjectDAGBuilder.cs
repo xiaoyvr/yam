@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Linq;
+using Yam.Core.Graph;
+using Yam.Core.MSProject;
 
 namespace Yam.Core
 {
-    public class ProjectDAGBuilder
+    internal class ProjectDAGBuilder
     {
         private readonly ProjectNode[] projectsNode;
         private readonly string[] excludes;

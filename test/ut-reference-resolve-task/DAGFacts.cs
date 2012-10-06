@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using Xunit;
 using Yam.Core;
+using Yam.Core.Graph;
 
 namespace Test
 {

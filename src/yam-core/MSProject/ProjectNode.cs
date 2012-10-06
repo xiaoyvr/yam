@@ -1,8 +1,8 @@
 using System;
 
-namespace Yam.Core
+namespace Yam.Core.MSProject
 {
-    public class ProjectNode : IDependencyNode, IEquatable<ProjectNode>
+    internal class ProjectNode : IDependencyNode, IEquatable<ProjectNode>
     {
         public Guid Id { get; set; }
         public AssemblyReference[] AssemblyReferences { get; set; }

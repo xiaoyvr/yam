@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
+using Yam.Core.Graph;
+using Yam.Core.MSProject;
 
 namespace Yam.Core
 {
@@ -19,7 +21,7 @@ namespace Yam.Core
             var dag = new ProjectDAGBuilder(resolveContext, projects).BuildDAG();
             var copyItemSets = CollectCopies(projects, dag, resolveContext);
             dag.Simplify();
-            var compileProjects = dag.Out().OfType<ProjectNode>().ToArray();
+            var compileProjects = dag.Out().OfType<ProjectNode>().Select(n => new ProjectItem(n.FullPath, n.Output)).ToArray();
 
             return new MSBuildPatch(compileProjects, copyItemSets);
         }
@@ -49,13 +51,25 @@ namespace Yam.Core
 
     public class MSBuildPatch
     {
-        public MSBuildPatch(ProjectNode[] compileProjects, CopyItemSet[] copyItemSets)
+        public MSBuildPatch(ProjectItem[] compileProjects, CopyItemSet[] copyItemSets)
         {
             CompileProjects = compileProjects;
             CopyItemSets = copyItemSets;
         }
 
-        public ProjectNode[] CompileProjects { get; private set; }
+        public ProjectItem[] CompileProjects { get; private set; }
         public CopyItemSet[] CopyItemSets { get; private set; }
+    }
+
+    public class ProjectItem
+    {
+        public string FullPath { get; private set; }
+        public string Output { get; private set; }
+
+        public ProjectItem(string fullPath, string output)
+        {
+            FullPath = fullPath;
+            Output = output;
+        }
     }
 }

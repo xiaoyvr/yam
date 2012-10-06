@@ -1,6 +1,6 @@
 using System;
 
-namespace Yam.Core
+namespace Yam.Core.Graph
 {
     public class CyclePathException : Exception
     {

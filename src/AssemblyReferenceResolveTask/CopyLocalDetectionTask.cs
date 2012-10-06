@@ -19,7 +19,7 @@ namespace ReferenceResolveTask
 
         public override bool Execute()
         {
-            var config = new ResolveConfig(ConfigFile.ItemSpec, Path.GetDirectoryName(BuildEngine2.ProjectFileOfTaskNode), GacUtil.GetGacSet());
+            var config = new ResolveConfig(ConfigFile.ItemSpec, Path.GetDirectoryName(BuildEngine2.ProjectFileOfTaskNode));
             var copyLocalDetector = new CopyLocalDetector(DeployHints.Select(dh => dh.ItemSpec).ToArray(), config);
             ProjectCopyLocals = copyLocalDetector.Dectect().Select(CreateProjectCopyLocal).ToArray();
             return true;

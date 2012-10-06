@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Yam.Core
+namespace Yam.Core.Graph
 {
-    public class DAG<T>
+    internal class DAG<T>
     {
         private readonly IDictionary<T, Vertex<T>> vertices;
         // TODO: merge path should be a part of a vertex

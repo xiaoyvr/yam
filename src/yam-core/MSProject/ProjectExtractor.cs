@@ -4,7 +4,7 @@ using System.Linq;
 using System.Xml;
 using System.Xml.XPath;
 
-namespace Yam.Core
+namespace Yam.Core.MSProject
 {
     public class ProjectExtractor
     {

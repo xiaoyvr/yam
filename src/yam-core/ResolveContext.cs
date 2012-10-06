@@ -1,10 +1,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Yam.Core.MSProject;
 
 namespace Yam.Core
 {
-    public class ResolveContext
+    internal class ResolveContext
     {
         private ResolveConfig ResolveConfig { get; set; }
         private IDictionary<string, ProjectNode> ProjectCache { get; set; }
@@ -57,7 +58,7 @@ namespace Yam.Core
             return paths.Select(p => new ProjectBuilder(p, ProjectCache, runtimeProfile, ResolveConfig).BuildUp()).ToArray();
         }
 
-        public virtual ProjectNode[] GetAllProjects()
+        public ProjectNode[] GetAllProjects()
         {
             return ResolveConfig.GetProjects().Select(p => new ProjectBuilder(p, ProjectCache, runtimeProfile, ResolveConfig).BuildUp()).ToArray();
         }

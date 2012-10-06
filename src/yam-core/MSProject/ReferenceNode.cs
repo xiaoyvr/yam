@@ -1,4 +1,4 @@
-namespace Yam.Core
+namespace Yam.Core.MSProject
 {
     public class ReferenceNode
     {

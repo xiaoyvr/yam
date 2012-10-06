@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using Microsoft.Build.Framework;
@@ -28,7 +27,7 @@ namespace ReferenceResolveTask
         public override bool Execute()
         {
             var rootDir = Path.GetDirectoryName(BuildEngine2.ProjectFileOfTaskNode);
-            var resolveConfig = new ResolveConfig(ConfigFile.ItemSpec, rootDir, GacUtil.GetGacSet());
+            var resolveConfig = new ResolveConfig(ConfigFile.ItemSpec, rootDir);
             var runtimeProfile = RuntimeProfile == null ? String.Empty : RuntimeProfile.ItemSpec;
             var msBuildPatch = new MSBuildPatcher(resolveConfig).Resolve(InputProjects.Select(t => t.GetMetadata("FullPath")).ToArray(), runtimeProfile);
             Copies = msBuildPatch.CopyItemSets.Select(CreateCopyTaskItem).ToArray();
@@ -47,7 +46,7 @@ namespace ReferenceResolveTask
             return taskItem;
         }
 
-        private static ITaskItem CreateProjectItem(ProjectNode node)
+        private static ITaskItem CreateProjectItem(ProjectItem node)
         {
             return new TaskItem(node.FullPath, new Dictionary<string, string>
                 {

@@ -29,7 +29,7 @@ namespace ReferenceResolveTask
         public override bool Execute()
         {
             var excludes = (ExcludeNodes??new ITaskItem[0]).Select(t => t.GetMetadata("FullPath")).ToArray();
-            var resolveConfig = new ResolveConfig(ConfigFile.ItemSpec, Path.GetDirectoryName(BuildEngine2.ProjectFileOfTaskNode), GacUtil.GetGacSet());
+            var resolveConfig = new ResolveConfig(ConfigFile.ItemSpec, Path.GetDirectoryName(BuildEngine2.ProjectFileOfTaskNode));
             var inputNodePaths = InputProjects.Select(t => t.GetMetadata("FullPath")).ToArray();
             var endNodePaths = (EndNodes??new ITaskItem[0]).Select(n => n.GetMetadata("FullPath")).ToArray();
             var runtimeProfile = RuntimeProfile == null ? string.Empty : RuntimeProfile.ItemSpec;

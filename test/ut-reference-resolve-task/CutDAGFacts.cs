@@ -1,5 +1,6 @@
 using Xunit;
 using Yam.Core;
+using Yam.Core.Graph;
 
 namespace UT.ReferenceResolve.Task
 {

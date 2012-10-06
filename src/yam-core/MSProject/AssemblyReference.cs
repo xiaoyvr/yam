@@ -1,6 +1,6 @@
-namespace Yam.Core
+namespace Yam.Core.MSProject
 {
-    public class AssemblyReference
+    internal class AssemblyReference
     {
         public string FullPath { get; set; }
         public string ReferenceName { get; set; }
@@ -15,7 +15,8 @@ namespace Yam.Core
 
         public AssemblyReferneceType AssemblyReferneceType { get; set; }
     }
-    public enum AssemblyReferneceType
+
+    internal enum AssemblyReferneceType
     {
         None,
         Project,

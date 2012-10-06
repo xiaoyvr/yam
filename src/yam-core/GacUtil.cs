@@ -5,13 +5,14 @@ using System.Text;
 
 namespace Yam.Core
 {
-    public static class GacUtil
+    internal static class GacUtil
     {
         public static HashSet<string> GetGacSet()
         {
             return new HashSet<string>(GetGac());
         }
-        public static IEnumerable<string> GetGac()
+
+        private static IEnumerable<string> GetGac()
         {
             var assemblyEnum = AssemblyCache.CreateGACEnum();
             IAssemblyName name;

@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 
-namespace Yam.Core
+namespace Yam.Core.Graph
 {
-    public class Vertex<T>
+    internal class Vertex<T>
     {
         public Vertex(T data)
         {
@@ -62,7 +62,8 @@ namespace Yam.Core
             return Data.GetHashCode();
         }
     }
-    public static class Extensions
+
+    internal static class Extensions
     {
         public static IEnumerable<Vertex<T>> GetSubVertices<T>(this Vertex<T> vertex)
         {

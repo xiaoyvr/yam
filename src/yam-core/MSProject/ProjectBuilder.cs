@@ -4,9 +4,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
-namespace Yam.Core
+namespace Yam.Core.MSProject
 {
-    public class ProjectBuilder
+    internal class ProjectBuilder
     {
         private readonly string projectFullPath;
         private readonly IDictionary<string, ProjectNode> cache;

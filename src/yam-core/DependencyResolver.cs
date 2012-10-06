@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Yam.Core.Graph;
+using Yam.Core.MSProject;
 
 namespace Yam.Core
 {

@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Yam.Core
 {
-    public class RefinablePath
+    internal class RefinablePath
     {
         private readonly string name;
         private readonly string[] paths;

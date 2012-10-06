@@ -14,10 +14,10 @@ namespace Yam.Core
         private readonly IDictionary<string, string> assemblyToProjectMapping = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         private readonly LibConfig libConfig = new LibConfig();
 
-        public ResolveConfig(string configFile, string rootDir, HashSet<string> gacSet)
+        public ResolveConfig(string configFile, string rootDir)
         {
             this.rootDir = rootDir;
-            this.gacSet = gacSet;
+            this.gacSet = GacUtil.GetGacSet();
             InitConfig(configFile);
         }
 

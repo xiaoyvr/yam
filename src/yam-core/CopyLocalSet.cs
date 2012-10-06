@@ -1,8 +1,10 @@
 using System.Linq;
+using Yam.Core.Graph;
+using Yam.Core.MSProject;
 
 namespace Yam.Core
 {
-    public class CopyLocalSet
+    internal class CopyLocalSet
     {
         public ProjectNode Dest { get; set; }
         public IDependencyNode[] CopyLocalSources { get { return ProjectCopySource.Concat(AssemblyCopySource).ToArray(); } }
