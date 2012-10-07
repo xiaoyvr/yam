@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="3.5" DefaultTargets="help" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" >
-	<Import Project="$(project)" />	
-	<Target Name="GetProjectOutput">		
-		<Message Text="Output: $(TargetPath)" importance="high" />		
+	<Target Name="GetProjectOutput">
+		<MSBuild Projects="$(project)" Targets="GetTargetPath">
+			<Output ItemName="targetOutputs" TaskParameter="TargetOutputs"/>
+		</MSBuild>
+		<Message Text="%(targetOutputs.FullPath)" importance="high" />
 	</Target>
 
 	<Target Name="GetProjectOutputItems">
-		<CallTarget Targets="GetCopyToOutputDirectoryItems">
+		<MSBuild Projects="$(project)" Targets="GetCopyToOutputDirectoryItems">
 			<Output ItemName="copyToOutputDirectoryItems" TaskParameter="TargetOutputs"/>
-		</CallTarget>
-		<Message Text="Output: %(copyToOutputDirectoryItems.FullPath)" Importance="high" />
+		</MSBuild>
+		<Message Text="%(copyToOutputDirectoryItems.FullPath)" Importance="high" />
 	</Target>	
 </Project>
