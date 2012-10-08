@@ -2,24 +2,16 @@ param(
     [string]$command = 'help'    
 )
 
-$bitness = ''
-$ptrSize = [System.IntPtr]::Size
-if ($ptrSize = 8) {
-    $bitness = '64'
+
+function Get-MSBuild(){
+	$bitness = ''
+	$ptrSize = [System.IntPtr]::Size
+	if ($ptrSize = 8) {
+		$bitness = '64'
+	}
+	$version = 'v4.0.30319'
+	"$env:windir\Microsoft.NET\Framework$bitness\$version\MSBuild.exe"
 }
-$version = 'v4.0.30319'
-$msbuild = "$env:windir\Microsoft.NET\Framework$bitness\$version\MSBuild.exe"
-
-
-
-# GetProjectOutputItems
-# project regex in solution Project\("\{(?<Type>.{36})\}"\)\s*=\s*"(?<Name>.*)",\s*"(?<Path>.*)",\s*"\{(?<Id>.{36})\}"
-
-$root = $MyInvocation.MyCommand.Path | Split-Path -parent
-
-
-$codebaseRoot = "."
-. .\codebaseConfig.ps1
 
 function Get-ProjectOutput ($project) {
     $output = &$msbuild $root\yam.targets /t:GetProjectOutput /p:project=$project /nologo /v:m
@@ -34,7 +26,11 @@ function Get-ProjectOutputItems ($project) {
     if ($LastExitCode -ne 0) {
         throw "error: $output"
     }
-    $output.trim()
+	if($output) {
+		$output | % { $_.trim()}
+	} else {
+		@()
+	}	
 }
 
 function Set-Config(){
@@ -71,12 +67,61 @@ function Set-Config(){
     Move-Item $tmpConfigFile $codebaseRoot\prj.config -Force
 }
 
-function Build-Projects ([string[]] $projects, [string] $profile = ''){
-    $fullCodebaseDir = Resolve-Path $codebaseRoot
+function Resolve-Projects([string[]] $files, [string] $profile = ''){
+    $result = Get-PatchedResult $files $profile
+	write-host '------------------------------  build  ------------------------------' -f cyan
+	$result.CompileProjects | % { write-host "$($_.FullPath) -> $($_.Output)" -f DarkGray }
+	
+    $result.CopyItemSets | % { 
+        $destOutput = Get-ProjectOutput $_.DestProject 
+        $destDir = Split-Path $destOutput -Parent
+		write-host "Copy to: $destDir" -f cyan
+        $_.Projects | % { Get-ProjectOutput $_ } | ? { 
+            $actDir = Split-Path $_ -Parent
+            $actDir -ne $destDir
+        } | % { write-host "$_ -> $destDir" -f DarkGray }
+
+        $_.Libs | ? { 
+            $libDir = Split-Path $_ -Parent
+            $libDir -ne $destDir
+        } | % { write-host "$_ -> $destDir" -f DarkGray }
+		
+        $_.ItemProjects | % { Get-ProjectOutputItems $_ } | % { write-host "$_ -> $destDir" -f DarkGray }
+    }
+	write-host '------------------------------  end  ------------------------------' -f cyan
+}
+
+function Get-SolutionProjects($sln){
+	Get-Content $sln | 
+		? { $_ -match 'Project\("\{(?<Type>.{36})\}"\)\s*=\s*"(?<Name>.*)",\s*"(?<Path>.*)",\s*"\{(?<Id>.{36})\}"' } | 
+		? { $matches.Path.EndsWith('.csproj')} | 
+		% { 
+			$prjPath = Join-Path (Split-Path $sln.FullName -Parent) $matches.Path 
+			Resolve-Path $prjPath
+		}
+}
+
+function Get-PatchedResult ([string[]] $files, [string] $profile){
+	$projects = $files | Get-Item | % {
+		$ext = $_.extension
+		$file = $_
+		switch ($ext) {
+			'.csproj'{
+				$file
+			}
+			'.sln' {
+				Get-SolutionProjects $file
+			}
+			'default' {
+				throw 'Error: $file is not supported. '
+			}
+		}
+	} | select -Unique
+
+	$fullCodebaseDir = Resolve-Path $codebaseRoot
     $fullRootDir = Resolve-Path $root
     $fullProjectDirs = $projects | Resolve-Path
-    
-    $result = Start-Job {
+    Start-Job {
         param($fullCodebaseDir, $fullRootDir, $fullProjectDirs, $profile)
         $configDir = Get-Item "$fullCodebaseDir\prj.config"
         Add-Type -Path "$fullRootDir\bin\debug\Yam.Core.dll"        
@@ -87,6 +132,10 @@ function Build-Projects ([string[]] $projects, [string] $profile = ''){
         $result
     } -ArgumentList $fullCodebaseDir, $fullRootDir, $fullProjectDirs, $profile |
         Wait-Job | Receive-Job
+}
+
+function Build-Projects ([string[]] $files, [string] $profile = ''){
+    $result = Get-PatchedResult $files $profile
     $env:EnableNuGetPackageRestore = "true"
     $result.CompileProjects | % { &$msbuild $_.FullPath }
     $result.CopyItemSets | % { 
@@ -102,10 +151,20 @@ function Build-Projects ([string[]] $projects, [string] $profile = ''){
             $libDir = Split-Path $_ -Parent
             $libDir -ne $destDir
         } | % { Copy-Item $_ -destination $destDir }
-
+		
         $_.ItemProjects | % { Get-ProjectOutputItems $_ } | % { Copy-Item $_ -destination $destDir }        
     }
 }
+function Show-Help {
+@"
+write some help here. 
+"@
+}
+
+$msbuild = Get-MSBuild
+$root = $MyInvocation.MyCommand.Path | Split-Path -parent
+$codebaseRoot = "."
+. .\codebaseConfig.ps1
 
 switch ($command){
     'config' {
@@ -114,7 +173,15 @@ switch ($command){
     'build'{
         Build-Projects @args
     }
+	'resolve'{
+		Resolve-Projects @args
+	}
     'help'{
-        "write some help here"
+        Show-Help
     }
+	default {
+		Write-Host "Error: '$command' is not a valid command." -f red
+		Show-Help
+		Exit 1
+	}
 }
