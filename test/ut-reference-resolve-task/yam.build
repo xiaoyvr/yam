@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="3.5" DefaultTargets="help" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" >
+	<PropertyGroup>
+		<BaseBuildToolsDir>build\build-tools</BaseBuildToolsDir>
+		<MSBuildCommunityTasksDir>$(BaseBuildToolsDir)\MSBuildCommunityTasks</MSBuildCommunityTasksDir>
+	</PropertyGroup>
+	
+	<UsingTask AssemblyFile="$(MSBuildCommunityTasksDir)\MSBuild.Community.Tasks.dll" TaskName="GetSolutionProjects" />
+	<UsingTask AssemblyFile="$(MSBuildCommunityTasksDir)\MSBuild.Community.Tasks.dll" TaskName="GacUtil" />
+	<UsingTask AssemblyFile="$(BaseBuildToolsDir)\ReferenceResolveTask.dll" TaskName="ResolveWithCopiesTask"/>
+	<UsingTask AssemblyFile="$(BaseBuildToolsDir)\ReferenceResolveTask.dll" TaskName="DependenceResolveTask"/>
+	<UsingTask AssemblyFile="$(BaseBuildToolsDir)\ReferenceResolveTask.dll" TaskName="CopyLocalDetectionTask"/>
+	<PropertyGroup>
+		<RuntimeConfig>runtime.config</RuntimeConfig>
+		<BaseDir>$(MSBuildProjectDirectory)</BaseDir>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<ConfigFile>prj.config</ConfigFile>
+	</PropertyGroup>
+
+	<Target Name="config">
+		<ItemGroup>
+			<PrjFiles Include="src/**/*.csproj"/>
+			<PrjFiles Include="test/**/*.csproj"/>
+			<LibFiles Include="libs/**/*.dll"/>
+			<LibFiles Include="packages/**/*.dll"/>
+		</ItemGroup>
+		<Delete Files="$(ConfigFile)" />
+		<MSBuild Projects="$(MSBuildProjectFile)" Targets="_mapper" Properties="prj=%(PrjFiles.Identity);dir=%(PrjFiles.RootDir)%(PrjFiles.Directory)" />
+		<WriteLinesToFile File="$(ConfigFile)" Lines="Lib, %(LibFiles.FileName), %(LibFiles.Identity)" Overwrite="false" />
+	</Target>
+
+	<Target Name="_mapper">
+		<MSBuild Projects="$(prj)" Targets="GetTargetPath">
+			<Output ItemName="targetOutputs" TaskParameter="TargetOutputs"/>
+		</MSBuild>
+		<WriteLinesToFile File="$(ConfigFile)" Lines="Project, %(targetOutputs.FileName), $(prj)" Overwrite="false" />
+	</Target>
+
+	<Target Name="cl">
+		<ItemGroup>
+			<DeployHints Include="runtime.config;ut.ps1config;package.ps1config;st.ps1config" />
+		</ItemGroup>
+		<CopyLocalDetectionTask ConfigFile="$(ConfigFile)" DeployHints="@(DeployHints)" >
+			<Output ItemName="projectCopyLocals" TaskParameter="ProjectCopyLocals"/>
+		</CopyLocalDetectionTask>
+		<Message Text="%0D%0A%(projectCopyLocals.Identity) %0D%0A%(projectCopyLocals.CopyLocals)" Condition=" '%(projectCopyLocals.CopyLocals)' != '' "/>
+		<Error Text="All copy local settings must be fixed. " Condition=" '%(projectCopyLocals.CopyLocals)' != '' "/>
+	</Target>
+
+	<Target Name="build" DependsOnTargets="_getProjectFiles; _resolveWithCopies; _buildProjects; _doCopies" />
+	
+	<Target Name="resolve" DependsOnTargets="_getProjectFiles; _resolveWithCopies; _reportProjects; _reportCopies" />
+	
+	<Target Name="_resolveWithCopies">
+		<ResolveWithCopiesTask InputProjects="@(ProjectFiles)" ConfigFile="$(ConfigFile)" RuntimeProfile="$(runtimeProfile)">
+			<Output TaskParameter="OutProjects" ItemName="ResolvedProjects"/>
+			<Output TaskParameter="Copies" ItemName="ResolvedCopies"/>
+		</ResolveWithCopiesTask>
+	</Target>
+
+	<Target Name="_buildProjects">
+		<Message Text="================================= build ================================" Importance="high" />
+		<Message Text="%(ResolvedProjects.Identity)" />
+		<Message Text="========================================================================" Importance="high"/>
+		<Message Text = "%(ResolvedProjects.FullPath)" />
+		<Message Text="*************************************************************************" Importance="high"/>
+		<MSBuild Projects="%(ResolvedProjects.FullPath)" Targets="Build" />
+	</Target>
+
+	<Target Name="_doCopies" Inputs="@(ResolvedCopies)" Outputs="%(Identity).Dummy">
+		<Message Text="target project: %(ResolvedCopies.Identity)" Importance="high"/>
+		<MSBuild Projects="%(ResolvedCopies.Identity)" Targets="GetTargetPath">
+			<Output ItemName="dest" TaskParameter="TargetOutputs"/>
+		</MSBuild>
+		
+		<PropertyGroup>
+			<DestDir>%(dest.rootdir)%(dest.directory)</DestDir>
+		</PropertyGroup>
+
+	
+		<MSBuild Projects="$(MSBuildProjectFile)" Targets="_getCopyArtifacts" Properties="CopyLibs=%(ResolvedCopies.CopyLibs);CopyProjects=%(ResolvedCopies.CopyProjects)">
+			<Output ItemName="Artifacts" TaskParameter="TargetOutputs" />
+		</MSBuild>
+		<Message Text="artifacts: " Importance="high"/>
+		<Copy SourceFiles="@(Artifacts)" DestinationFolder="$(DestDir)" />
+		
+		<MSBuild Projects="$(MSBuildProjectFile)" Targets="_getCopyItems" Properties="CopyItemProjectsStr=%(ResolvedCopies.CopyItemProjects)">
+			<Output ItemName="CopyItems" TaskParameter="TargetOutputs" />
+		</MSBuild>
+		<Message Text="items: " Importance="high"/>
+		<Copy SourceFiles="@(CopyItems)" DestinationFiles="@(CopyItems->'$(DestDir)%(TargetPath)')" />
+		
+	</Target>
+
+	<Target Name="_reportProjects">
+		<Message Text="------------------------------  build  ------------------------------" Importance="High"/>
+		<Message Text="%(ResolvedProjects.Identity) -> %(ResolvedProjects.AssemblyName)" />
+		<Message Text="------------------------------  build  ------------------------------" Importance="High"/>
+	</Target>
+	
+	<Target Name="_reportCopies" Inputs="@(ResolvedCopies)" Outputs="%(Identity).Dummy">
+		<Message Text="target project: %(ResolvedCopies.Identity)" Importance="high"/>		
+		<MSBuild Projects="$(MSBuildProjectFile)" Targets="_getCopyArtifacts" Properties="CopyLibs=%(ResolvedCopies.CopyLibs);CopyProjects=%(ResolvedCopies.CopyProjects)">
+			<Output ItemName="Artifacts" TaskParameter="TargetOutputs" />
+		</MSBuild>
+		<Message Text="artifacts: " Importance="high"/>
+		<Message Text="%(Artifacts.Identity)" />
+		
+		<MSBuild Projects="$(MSBuildProjectFile)" Targets="_getCopyItems" Properties="CopyItemProjectsStr=%(ResolvedCopies.CopyItemProjects)">
+			<Output ItemName="CopyItems" TaskParameter="TargetOutputs" />
+		</MSBuild>
+				
+		<Message Text="items: " Importance="high"/>
+		<Message Text="%(CopyItems.Identity)" />
+	</Target>
+	
+	<Target Name="_getCopyItems" Outputs="@(ProjectCopyToOutputItems)">
+		<ItemGroup>
+			<CopyItemProjectItems Include="$(CopyItemProjectsStr.Split(';'))" />
+		</ItemGroup>
+		
+		<MSBuild Projects="%(CopyItemProjectItems.Identity)" Targets="GetCopyToOutputDirectoryItems">
+			<Output ItemName="ProjectCopyToOutputItems" TaskParameter="TargetOutputs"/>
+		</MSBuild>
+	</Target>	
+		
+	<Target Name="_getCopyArtifacts" Outputs="@(CopyFiles)">		
+		<ItemGroup>
+			<itemLibs Include="$(CopyLibs.Split(';'))" />
+			<itemProjects Include="$(CopyProjects.Split(';'))" />
+		</ItemGroup>
+		
+		<MSBuild Projects="%(itemProjects.Identity)" Targets="GetTargetPath">
+			<Output ItemName="artifacts" TaskParameter="TargetOutputs"/>
+		</MSBuild>
+
+
+		<ItemGroup>
+			<CopyFiles Include="@(itemLibs)" Condition=" '$(DestDir)' != '%(itemLibs.rootdir)%(itemLibs.directory)' " />
+			<CopyFiles Include="@(artifacts)" Condition=" '$(DestDir)' != '%(artifacts.rootdir)%(artifacts.directory)' " />
+		</ItemGroup>
+	</Target>
+		
+	<Target Name="_getProjectFiles" Outputs="@(ProjectFiles)">
+		<ItemGroup>
+			<BuildTargetItem Include="$(buildTarget)" Condition="$(buildTarget) != '' " />
+		</ItemGroup>
+		<PropertyGroup Condition="$(buildTarget) != '' " >
+			<TargetFileExtension>%(BuildTargetItem.Extension)</TargetFileExtension>
+			<SolutionFile Condition=" $(TargetFileExtension) == '.sln' " >$(buildTarget)</SolutionFile>
+			<SolutionFile Condition=" $(TargetFileExtension) == '' " >$(buildTarget).sln</SolutionFile>
+		</PropertyGroup>
+
+		<GetSolutionProjects Solution="$(SolutionFile)" Condition=" '$(SolutionFile)' != '' ">
+			<Output ItemName="SolutionProjectFiles" TaskParameter="Output"/>
+		</GetSolutionProjects>
+		
+		<ItemGroup>
+			<ProjectFiles Include="@(SolutionProjectFiles)" Condition=" %(SolutionProjectFiles.Extension) != '' AND %(SolutionProjectFiles.Extension) != 'dbproj' " />
+		</ItemGroup>
+		
+		<ItemGroup Condition=" $(TargetFileExtension) == '.csproj' " >
+			<ProjectFiles Include="$(buildTarget)" />
+		</ItemGroup>
+		
+		<ReadLinesFromFile File="$(fprjf)" Condition=" '$(fprjf)' != '' ">
+			<Output PropertyName="myprojs" TaskParameter="Lines" />
+		</ReadLinesFromFile>
+		<ItemGroup>
+			<ProjectFiles Include="$(myprojs)" Condition=" '$(fprjf)' != '' "/>
+		</ItemGroup>
+	</Target>
+		
+	<Target Name="graphviz" DependsOnTargets="_getProjectFiles">
+		<ItemGroup>
+			<PrjItem Include="$(buildTarget)" Condition=" $(buildTarget) != '' "/>
+			<DestItem Include="$(dest.split(' '))" Condition=" $(dest) != '' "/>
+		</ItemGroup>
+		<PropertyGroup>
+			<DependenciesDir>dependencies</DependenciesDir>
+			<GraphFromTarget>graph</GraphFromTarget>
+			<GraphFromTarget Condition=" '$(SolutionFile)' != '' ">$(SolutionFile)</GraphFromTarget>
+			<GraphFromTarget Condition=" '$(SolutionFile)' == '' ">%(ProjectFiles.FileName)%(ProjectFiles.Extension)</GraphFromTarget>
+			<GraphToTarget>@(DestItem->'%(FileName)%(Extension)', '.')</GraphToTarget>
+			<GraphTarget Condition=" '$(GraphToTarget)' == '' ">$(GraphFromTarget)</GraphTarget>
+			<GraphTarget Condition=" '$(GraphToTarget)' != '' ">$(GraphFromTarget).$(GraphToTarget)</GraphTarget>
+			<Prefix Condition=" $(reverse) == 'true' ">.r</Prefix>
+			<GraphFile>$(DependenciesDir)/$(GraphTarget)$(Prefix).txt</GraphFile>
+		</PropertyGroup>		
+		<DependenceResolveTask InputProjects="@(ProjectFiles)" ExcludeNodes="@(ExcludeNodes)" ConfigFile="$(ConfigFile)" 
+			RuntimeProfile="$(runtimeProfile)" Reverse="$(reverse)"  EndNodes="@(DestItem)" >
+			<Output TaskParameter="Dependences" ItemName="Dependences"/>
+		</DependenceResolveTask>
+		<MakeDir Directories="$(DependenciesDir)"/>
+		<Delete Files="$(GraphFile)" />
+		<WriteLinesToFile File="$(GraphFile)" Lines="digraph &quot;$(GraphTarget)&quot; {" Overwrite="true" />
+		<MSBuild Projects="$(MSBuildProjectFile)" Targets="OutputDependence" Properties="node=%(Dependences.Identity);outgoings=%(Dependences.To);outputFile=$(GraphFile)" />
+		<WriteLinesToFile File="$(GraphFile)" Lines="}" Overwrite="false" />
+		<Delete Files="$(GraphFile).svg" />
+		<Exec Command="dot -O -Tsvg &quot;$(GraphFile)&quot;" />
+		<Exec Command="start $(GraphFile).svg" />
+	</Target>
+	
+	<Target Name="OutputDependence">
+		<ItemGroup>
+			<NodeItem Include="$(node)"/>
+			<OutgoingItems Include="$(outgoings.split(';'))" />
+		</ItemGroup>
+		<PropertyGroup>
+			<NodeName>@(NodeItem -> '%(Filename)')</NodeName>
+		</PropertyGroup>
+		<Message Text="$(node) ->  %(OutgoingItems.Identity)" Condition=" $(outgoings) != '' "/>
+		<WriteLinesToFile File="$(outputFile)" Lines="&quot;$(NodeName)&quot; ->  &quot;%(OutgoingItems.Filename)&quot;" Overwrite="false" Condition=" $(outgoings) != '' " />
+	</Target>
+	
+	<Target Name="help">
+		<Message Text="How to run mk locally (always use relative path)" Importance="high"/>
+		<Message Text="Sample Commands            					Description" Importance="high"/>
+		<Message Text="--------------------------------------------------------------------------------------" />
+		<Message Text="Targets" Importance="high"/>
+		<Message Text="config								make the config file"/>
+		<Message Text="build {solutionName}	[profileName]				make solution"/>
+		<Message Text="resolve {solutionName} [profileName]				resolve solution"/>
+		<Message Text="build {projectName}.{extension} [profileName]			make project"/>
+		<Message Text="resolve {projectName}.{extension} [profileName]		resolve project"/>
+	</Target>
+</Project>
