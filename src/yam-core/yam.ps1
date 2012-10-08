@@ -2,7 +2,6 @@ param(
     [string]$command = 'help'    
 )
 
-
 function Get-MSBuild(){
 	$bitness = ''
 	$ptrSize = [System.IntPtr]::Size
@@ -34,27 +33,22 @@ function Get-ProjectOutputItems ($project) {
 }
 
 function Set-Config(){
-    $projects = $codebaseConfig.projectDirs | 
+	$tmpConfigFile = "$codebaseRoot\prj.config.tmp"
+	Set-Content $tmpConfigFile $null
+	
+    $codebaseConfig.projectDirs | 
         ? { Test-Path $_} | 
         Get-ChildItem -Recurse -filter *.csproj | 
-        % { $_.FullName }| 
-        % { 
+        % { $_.FullName }| % { 
             @{
                 "Output" = Get-ProjectOutput $_
                 "Project" = Resolve-Path $_ -Relative
             }
-        }
-
-    $tmpConfigFile = "$codebaseRoot\prj.config.tmp"
-    if(Test-Path $tmpConfigFile){
-        Remove-Item $tmpConfigFile
-    }
-    $projects | %{ 
-        $fileName = [System.IO.Path]::GetFileNameWithoutExtension($_.Output)
-        $prj = Resolve-Path $($_.Project) -Relative
-        Add-Content $tmpConfigFile "Project, $fileName, $prj" 
-    }
-
+        } | %{ 
+			$fileName = [System.IO.Path]::GetFileNameWithoutExtension($_.Output)
+			$prj = Resolve-Path $($_.Project) -Relative
+			Add-Content $tmpConfigFile "Project, $fileName, $prj" 
+		}
     $codebaseConfig.libDirs | 
         ? { Test-Path $_} | 
         Get-ChildItem -Recurse -filter *.dll | 

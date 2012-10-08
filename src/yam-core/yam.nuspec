@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>yam</id>
+    <version>0.0.1</version>
+    <title>yam</title>
+    <authors>xiaoyvr</authors>
+    <owners>xiaoyvr</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>yam</description>
+    <copyright>Copyright 2012</copyright>
+    <tags>yam</tags>
+  </metadata>
+  <files>
+    <file src="bin\Debug\*.dll" target="tools\" />
+	<file src="install.ps1" target="" />
+    <file src="yam.ps1" target="tools\" />
+	<file src="yam.targets" target="tools\" />
+	<file src="yam.types.ps1xml" target="tools\" />
+  </files>
+</package>
