@@ -124,7 +124,7 @@ function Get-PatchedResult ([string[]] $files, [string] $profile){
     Start-Job {
         param($fullCodebaseDir, $fullRootDir, $fullProjectDirs, $profile)
         $configDir = Get-Item "$fullCodebaseDir\prj.config"
-        Add-Type -Path "$fullRootDir\bin\debug\Yam.Core.dll"        
+		Get-ChildItem $fullRootDir "Yam.Core.dll" -Recurse | % { Add-Type -Path $_.FullName }
         Update-TypeData -prependpath "$fullRootDir\yam.types.ps1xml"
         $cfg = new-object Yam.Core.ResolveConfig $configDir.FullName, $fullCodebaseDir
         $patcher = new-object Yam.Core.MSBuildPatcher $cfg
