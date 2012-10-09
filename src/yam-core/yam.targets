@@ -13,4 +13,26 @@
 		</MSBuild>
 		<Message Text="%(copyToOutputDirectoryItems.FullPath)" Importance="high" />
 	</Target>	
+
+	<Target Name="GetProjectOutputFromFile" DependsOnTargets="_readProjects; _getProjectOutput">		
+		<Message Text="%(OutputResult.Identity)" importance="high" />
+	</Target>
+
+	<Target Name="_readProjects" Outputs="@(projects)">
+		<ReadLinesFromFile File="$(file)" Condition=" '$(file)' != '' ">
+			<Output ItemName="projects" TaskParameter="Lines" />
+		</ReadLinesFromFile>
+	</Target>
+
+	<Target Name="_getProjectOutput" Inputs="@(projects)" Outputs="%(Identity).Dummy">
+		<PropertyGroup>
+			<project>%(projects.Identity)</project>
+		</PropertyGroup>
+		<MSBuild Projects="$(rootDir)\$(project)" Targets="GetTargetPath">
+			<Output ItemName="targetOutputs" TaskParameter="TargetOutputs"/>
+		</MSBuild>
+		<ItemGroup>
+			<OutputResult Include="@(targetOutputs ->'Project, %(FileName), $(project)')" />
+		</ItemGroup>
+	</Target>
 </Project>
