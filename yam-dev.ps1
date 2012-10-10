@@ -1,4 +1,1 @@
-
-
-
-.\src\yam-core\yam.ps1 @args
+.\src\AssemblyReferenceResolveTask\yam.ps1 @args

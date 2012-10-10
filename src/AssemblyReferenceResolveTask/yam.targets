@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="3.5" DefaultTargets="help" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" >
+
+	<UsingTask AssemblyFile="ReferenceResolveTask.dll" TaskName="ResolveWithCopiesTask"/>
+	<UsingTask AssemblyFile="ReferenceResolveTask.dll" TaskName="DependenceResolveTask"/>
+	<UsingTask AssemblyFile="ReferenceResolveTask.dll" TaskName="CopyLocalDetectionTask"/>
+
+	<Target Name="GetProjectOutput">
+		<MSBuild Projects="$(project)" Targets="GetTargetPath">
+			<Output ItemName="targetOutputs" TaskParameter="TargetOutputs"/>
+		</MSBuild>
+		<Message Text="%(targetOutputs.FullPath)" importance="high" />
+	</Target>
+
+	<Target Name="GetProjectOutputItems">
+		<MSBuild Projects="$(project)" Targets="GetCopyToOutputDirectoryItems">
+			<Output ItemName="copyToOutputDirectoryItems" TaskParameter="TargetOutputs"/>
+		</MSBuild>
+		<Message Text="%(copyToOutputDirectoryItems.FullPath)" Importance="high" />
+	</Target>	
+
+
+	<Target Name="GetProjectOutputFromFile" DependsOnTargets="_readProjects; _getProjectOutput">		
+		<Message Text="%(OutputResult.Identity)" importance="high" />
+	</Target>
+	<Target Name="_getProjectOutput" Inputs="@(projects)" Outputs="%(Identity).Dummy">
+		<PropertyGroup>
+			<project>%(projects.Identity)</project>
+		</PropertyGroup>
+		<MSBuild Projects="$(rootDir)\$(project)" Targets="GetTargetPath">
+			<Output ItemName="targetOutputs" TaskParameter="TargetOutputs"/>
+		</MSBuild>
+		<ItemGroup>
+			<OutputResult Include="@(targetOutputs ->'Project, %(FileName), $(project)')" />
+		</ItemGroup>
+	</Target>
+
+
+	<Target Name="Resolve" DependsOnTargets="_readProjects; _resolveWithCopies; _reportProjects; _reportCopies" />
+	<Target Name="_reportProjects">
+		<Message Text="------------------------------  build  ------------------------------" Importance="High"/>
+		<Message Text="%(resolvedProjects.Identity) -> %(resolvedProjects.AssemblyName)" />
+		<Message Text="------------------------------  build  ------------------------------" Importance="High"/>
+	</Target>
+	<Target Name="_reportCopies" Inputs="@(resolvedCopies)" Outputs="%(Identity).Dummy">
+		<Message Text="target project: %(resolvedCopies.Identity)" Importance="high"/>		
+		<MSBuild Projects="$(MSBuildProjectFile)" Targets="_getCopyArtifacts" Properties="CopyLibs=%(resolvedCopies.CopyLibs);CopyProjects=%(resolvedCopies.CopyProjects)">
+			<Output ItemName="Artifacts" TaskParameter="TargetOutputs" />
+		</MSBuild>
+		<Message Text="artifacts: " Importance="high"/>
+		<Message Text="%(Artifacts.Identity)" />
+		
+		<MSBuild Projects="$(MSBuildProjectFile)" Targets="_getCopyItems" Properties="copyItemProjectsStr=%(resolvedCopies.CopyItemProjects)">
+			<Output ItemName="CopyItems" TaskParameter="TargetOutputs" />
+		</MSBuild>
+		<Message Text="items: " Importance="high"/>
+		<Message Text="%(CopyItems.Identity)" />
+	</Target>
+	<Target Name="_getCopyArtifacts" Outputs="@(copyFiles)">		
+		<ItemGroup>
+			<itemLibs Include="$(CopyLibs.Split(';'))" />
+			<itemProjects Include="$(CopyProjects.Split(';'))" />
+		</ItemGroup>
+		<MSBuild Projects="%(itemProjects.Identity)" Targets="GetTargetPath">
+			<Output ItemName="artifacts" TaskParameter="TargetOutputs"/>
+		</MSBuild>
+		<ItemGroup>
+			<copyFiles Include="@(itemLibs)" Condition=" '$(DestDir)' != '%(itemLibs.rootdir)%(itemLibs.directory)' " />
+			<copyFiles Include="@(artifacts)" Condition=" '$(DestDir)' != '%(artifacts.rootdir)%(artifacts.directory)' " />
+		</ItemGroup>
+	</Target>
+	<Target Name="_getCopyItems" Outputs="@(projectCopyToOutputItems)">
+		<ItemGroup>
+			<CopyItemProjectItems Include="$(copyItemProjectsStr.Split(';'))" />
+		</ItemGroup>
+		
+		<MSBuild Projects="%(CopyItemProjectItems.Identity)" Targets="GetCopyToOutputDirectoryItems">
+			<Output ItemName="projectCopyToOutputItems" TaskParameter="TargetOutputs"/>
+		</MSBuild>
+	</Target>	
+
+	<Target Name="Build" DependsOnTargets="_readProjects; _resolveWithCopies; _buildProjects; _doCopies" />
+	<Target Name="_buildProjects">
+		<Message Text="================================= build ================================" Importance="high" />
+		<Message Text="%(resolvedProjects.Identity)" />
+		<Message Text="*************************************************************************" Importance="high"/>
+		<MSBuild Projects="%(resolvedProjects.FullPath)" Targets="Build" />
+	</Target>
+	<Target Name="_doCopies" Inputs="@(resolvedCopies)" Outputs="%(Identity).Dummy">
+		<Message Text="target project: %(resolvedCopies.Identity)" Importance="high"/>
+		<MSBuild Projects="%(resolvedCopies.Identity)" Targets="GetTargetPath">
+			<Output ItemName="dest" TaskParameter="TargetOutputs"/>
+		</MSBuild>
+		
+		<PropertyGroup>
+			<DestDir>%(dest.rootdir)%(dest.directory)</DestDir>
+		</PropertyGroup>
+
+		<MSBuild Projects="$(MSBuildProjectFile)" Targets="_getCopyArtifacts" Properties="CopyLibs=%(resolvedCopies.CopyLibs);CopyProjects=%(resolvedCopies.CopyProjects)">
+			<Output ItemName="artifacts" TaskParameter="TargetOutputs" />
+		</MSBuild>
+		<Message Text="artifacts: " Importance="high"/>
+		<Copy SourceFiles="@(artifacts)" DestinationFolder="$(DestDir)" SkipUnchangedFiles="true" />
+		
+		<MSBuild Projects="$(MSBuildProjectFile)" Targets="_getCopyItems" Properties="copyItemProjectsStr=%(resolvedCopies.CopyItemProjects)">
+			<Output ItemName="copyItems" TaskParameter="TargetOutputs" />
+		</MSBuild>
+		<Message Text="items: " Importance="high"/>
+		<Copy SourceFiles="@(copyItems)" DestinationFiles="@(copyItems->'$(DestDir)%(TargetPath)')" SkipUnchangedFiles="true" />
+	</Target>
+
+
+	<Target Name="_readProjects" Outputs="@(projects)">
+		<ReadLinesFromFile File="$(file)" Condition=" '$(file)' != '' ">
+			<Output ItemName="projects" TaskParameter="Lines" />
+		</ReadLinesFromFile>
+	</Target>
+	<Target Name="_resolveWithCopies">
+		<ResolveWithCopiesTask InputProjects="@(projects)" RootDir="$(rootDir)" ConfigFile="$(configFile)" RuntimeProfile="$(runtimeProfile)">
+			<Output TaskParameter="OutProjects" ItemName="resolvedProjects"/>
+			<Output TaskParameter="Copies" ItemName="resolvedCopies"/>
+		</ResolveWithCopiesTask>
+	</Target>
+</Project>

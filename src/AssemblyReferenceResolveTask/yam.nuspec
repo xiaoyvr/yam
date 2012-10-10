@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>yam</id>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
     <title>yam</title>
     <authors>xiaoyvr</authors>
     <owners>xiaoyvr</owners>
@@ -13,9 +13,9 @@
   </metadata>
   <files>
     <file src="bin\Debug\*.dll" target="tools\" />
-	<file src="install.ps1" target="" />
+	  <file src="install.ps1" target="" />
     <file src="yam.ps1" target="tools\" />
-	<file src="yam.targets" target="tools\" />
-	<file src="yam.types.ps1xml" target="tools\" />
+	  <file src="yam.targets" target="tools\" />
+	  <file src="yam.types.ps1xml" target="tools\" />
   </files>
 </package>

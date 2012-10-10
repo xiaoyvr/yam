@@ -11,6 +11,8 @@ namespace ReferenceResolveTask
     {
         [Required]
         public ITaskItem ConfigFile { get; set; }
+        [Required]
+        public ITaskItem RootDir { get; set; }
 
         public ITaskItem[] DeployHints { get; set; }
 
@@ -19,7 +21,7 @@ namespace ReferenceResolveTask
 
         public override bool Execute()
         {
-            var config = new ResolveConfig(ConfigFile.ItemSpec, Path.GetDirectoryName(BuildEngine2.ProjectFileOfTaskNode));
+            var config = new ResolveConfig(ConfigFile.ItemSpec, RootDir.ItemSpec);
             var copyLocalDetector = new CopyLocalDetector(DeployHints.Select(dh => dh.ItemSpec).ToArray(), config);
             ProjectCopyLocals = copyLocalDetector.Dectect().Select(CreateProjectCopyLocal).ToArray();
             return true;

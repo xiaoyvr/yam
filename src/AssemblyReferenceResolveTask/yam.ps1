@@ -12,16 +12,7 @@ function Get-MSBuild(){
     "$env:windir\Microsoft.NET\Framework$bitness\$version\MSBuild.exe"
 }
 
-function Get-ProjectOutput ($project) {
-    $output = &$msbuild $root\yam.targets /t:GetProjectOutput /p:project=$project /nologo /v:m
-    if ($LastExitCode -ne 0) {
-        throw "error: $output"
-    }
-    $output.trim()
-}
-
 function Get-ProjectOutputFromFile ($file) {
-    $fullCodebaseRoot = Resolve-Path $codebaseRoot
     $output = &$msbuild $root\yam.targets /t:GetProjectOutputFromFile /p:"file=$file;rootDir=$fullCodebaseRoot" /nologo /v:m
     if ($LastExitCode -ne 0) {
         throw "error: $output"
@@ -29,16 +20,11 @@ function Get-ProjectOutputFromFile ($file) {
     $output | % { $_.trim() }
 }
 
-function Get-ProjectOutputItems ($project) {
-    $output = &$msbuild $root\yam.targets /t:GetProjectOutputItems /p:project=$project /nologo /v:m
+function Call-MSBuild ($target, $properties) {
+    &$msbuild $root\yam.targets /t:$target /p:$properties /m:4
     if ($LastExitCode -ne 0) {
-        throw "error: $output"
+        throw "Error: MSBuild failed. "
     }
-    if($output) {
-        $output | % { $_.trim()}
-    } else {
-        @()
-    }   
 }
 
 function Set-Config(){
@@ -65,31 +51,15 @@ function Set-Config(){
             $fullName = (Resolve-Path $_ -Relative).SubString(2)
             Add-Content $tmpConfigFile "Lib, $fileName, $fullName" 
         }
-    Move-Item $tmpConfigFile $codebaseRoot\prj.config -Force
+    Move-Item $tmpConfigFile $configFile -Force
 }
 
 function Resolve-Projects([string[]] $files, [string] $profile = ''){
-    $result = Get-PatchedResult $files $profile
-    write-host '------------------------------  build  ------------------------------' -f cyan
-    $result.CompileProjects | % { write-host "$($_.FullPath) -> $($_.Output)" -f DarkGray }
-    
-    $result.CopyItemSets | % { 
-        $destOutput = Get-ProjectOutput $_.DestProject 
-        $destDir = Split-Path $destOutput -Parent
-        write-host "Copy to: $destDir" -f cyan
-        $_.Projects | % { Get-ProjectOutput $_ } | ? { 
-            $actDir = Split-Path $_ -Parent
-            $actDir -ne $destDir
-        } | % { write-host "$_ -> $destDir" -f DarkGray }
-
-        $_.Libs | ? { 
-            $libDir = Split-Path $_ -Parent
-            $libDir -ne $destDir
-        } | % { write-host "$_ -> $destDir" -f DarkGray }
-        
-        $_.ItemProjects | % { Get-ProjectOutputItems $_ } | % { write-host "$_ -> $destDir" -f DarkGray }
-    }
-    write-host '------------------------------  end  ------------------------------' -f cyan
+    $tmpFileName = [System.IO.Path]::GetTempFileName()
+    Get-InputProjects $files | Set-Content $tmpFileName
+    $props = "rootDir=$fullCodebaseRoot;configFile=$configFile;file=$tmpFileName;runtimeProfile=$profile"
+    Call-MSBuild "Resolve" $props
+    Remove-Item $tmpFileName
 }
 
 function Get-SolutionProjects($sln){
@@ -102,8 +72,8 @@ function Get-SolutionProjects($sln){
         }
 }
 
-function Get-PatchedResult ([string[]] $files, [string] $profile){
-    $projects = $files | Get-Item | % {
+Function Get-InputProjects([string[]] $files){
+    $files | Get-Item | % {
         $ext = $_.extension
         $file = $_
         switch ($ext) {
@@ -113,12 +83,18 @@ function Get-PatchedResult ([string[]] $files, [string] $profile){
             '.sln' {
                 Get-SolutionProjects $file
             }
+            '.txt'{
+                Get-Content $files
+            }
             'default' {
                 throw 'Error: $file is not supported. '
             }
         }
-    } | select -Unique
+    } | select -Unique    
+}
 
+function Get-PatchedResult ([string[]] $files, [string] $profile){
+    $projects = Get-InputProjects $files
     $fullCodebaseDir = Resolve-Path $codebaseRoot
     $fullRootDir = Resolve-Path $root
     $fullProjectDirs = $projects | Resolve-Path
@@ -136,25 +112,11 @@ function Get-PatchedResult ([string[]] $files, [string] $profile){
 }
 
 function Build-Projects ([string[]] $files, [string] $profile = ''){
-    $result = Get-PatchedResult $files $profile
-    $env:EnableNuGetPackageRestore = "true"
-    $result.CompileProjects | % { &$msbuild $_.FullPath }
-    $result.CopyItemSets | % { 
-        $destOutput = Get-ProjectOutput $_.DestProject 
-        $destDir = Split-Path $destOutput -Parent
-
-        $_.Projects | % { Get-ProjectOutput $_ } | ? { 
-            $actDir = Split-Path $_ -Parent
-            $actDir -ne $destDir
-        } | % { Copy-Item $_ -destination $destDir }
-
-        $_.Libs | ? { 
-            $libDir = Split-Path $_ -Parent
-            $libDir -ne $destDir
-        } | % { Copy-Item $_ -destination $destDir }
-        
-        $_.ItemProjects | % { Get-ProjectOutputItems $_ } | % { Copy-Item $_ -destination $destDir }        
-    }
+    $tmpFileName = [System.IO.Path]::GetTempFileName()
+    Get-InputProjects $files | Set-Content $tmpFileName
+    $props = "rootDir=$fullCodebaseRoot;configFile=$configFile;file=$tmpFileName;runtimeProfile=$profile"
+    Call-MSBuild "Build" $props
+    Remove-Item $tmpFileName
 }
 function Show-Help {
 @"
@@ -168,6 +130,8 @@ $msbuild = Get-MSBuild
 $root = $MyInvocation.MyCommand.Path | Split-Path -parent
 $codebaseRoot = "."
 . .\codebaseConfig.ps1
+$fullCodebaseRoot = Resolve-Path $codebaseRoot
+$configFile = "$fullCodebaseRoot\prj.config"
 
 switch ($command){
     'config' {
@@ -188,5 +152,5 @@ switch ($command){
         Exit 1
     }
 }
-$timeSpent = New-TimeSpan $(Get-Date) $start 
-write-host $timeSpent
+$timeSpent = New-TimeSpan $start $(Get-Date) 
+write-host "Time Elapsed $timeSpent"

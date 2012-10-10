@@ -12,6 +12,8 @@ namespace ReferenceResolveTask
     {
         [Required]
         public ITaskItem[] InputProjects { get; set; }
+        [Required]
+        public ITaskItem RootDir { get; set; }
 
         [Required]
         public ITaskItem ConfigFile { get; set; }
@@ -26,8 +28,7 @@ namespace ReferenceResolveTask
 
         public override bool Execute()
         {
-            var rootDir = Path.GetDirectoryName(BuildEngine2.ProjectFileOfTaskNode);
-            var resolveConfig = new ResolveConfig(ConfigFile.ItemSpec, rootDir);
+            var resolveConfig = new ResolveConfig(ConfigFile.ItemSpec, RootDir.ItemSpec);
             var runtimeProfile = RuntimeProfile == null ? String.Empty : RuntimeProfile.ItemSpec;
             var msBuildPatch = new MSBuildPatcher(resolveConfig).Resolve(InputProjects.Select(t => t.GetMetadata("FullPath")).ToArray(), runtimeProfile);
             Copies = msBuildPatch.CopyItemSets.Select(CreateCopyTaskItem).ToArray();
