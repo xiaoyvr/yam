@@ -5,36 +5,20 @@
 	<UsingTask AssemblyFile="ReferenceResolveTask.dll" TaskName="DependenceResolveTask"/>
 	<UsingTask AssemblyFile="ReferenceResolveTask.dll" TaskName="CopyLocalDetectionTask"/>
 
-	<Target Name="GetProjectOutput">
-		<MSBuild Projects="$(project)" Targets="GetTargetPath">
-			<Output ItemName="targetOutputs" TaskParameter="TargetOutputs"/>
-		</MSBuild>
-		<Message Text="%(targetOutputs.FullPath)" importance="high" />
-	</Target>
-
-	<Target Name="GetProjectOutputItems">
-		<MSBuild Projects="$(project)" Targets="GetCopyToOutputDirectoryItems">
-			<Output ItemName="copyToOutputDirectoryItems" TaskParameter="TargetOutputs"/>
-		</MSBuild>
-		<Message Text="%(copyToOutputDirectoryItems.FullPath)" Importance="high" />
-	</Target>	
-
-
-	<Target Name="GetProjectOutputFromFile" DependsOnTargets="_readProjects; _getProjectOutput">		
-		<Message Text="%(OutputResult.Identity)" importance="high" />
+	<Target Name="GetProjectOutputFromFile" DependsOnTargets="_readProjects; _getProjectOutput">
+	        <Message Text="%(OutputResult.Identity)" importance="high" />
 	</Target>
 	<Target Name="_getProjectOutput" Inputs="@(projects)" Outputs="%(Identity).Dummy">
-		<PropertyGroup>
-			<project>%(projects.Identity)</project>
-		</PropertyGroup>
-		<MSBuild Projects="$(rootDir)\$(project)" Targets="GetTargetPath">
-			<Output ItemName="targetOutputs" TaskParameter="TargetOutputs"/>
-		</MSBuild>
-		<ItemGroup>
-			<OutputResult Include="@(targetOutputs ->'Project, %(FileName), $(project)')" />
-		</ItemGroup>
+	        <PropertyGroup>
+	                <project>%(projects.Identity)</project>
+	        </PropertyGroup>
+	        <MSBuild Projects="$(rootDir)\$(project)" Targets="GetTargetPath">
+	                <Output ItemName="targetOutputs" TaskParameter="TargetOutputs"/>
+	        </MSBuild>
+	        <ItemGroup>
+	                <OutputResult Include="@(targetOutputs ->'Project, %(FileName), $(project)')" />
+	        </ItemGroup>
 	</Target>
-
 
 	<Target Name="Resolve" DependsOnTargets="_readProjects; _resolveWithCopies; _reportProjects; _reportCopies" />
 	<Target Name="_reportProjects">
@@ -109,6 +93,20 @@
 		<Copy SourceFiles="@(copyItems)" DestinationFiles="@(copyItems->'$(DestDir)%(TargetPath)')" SkipUnchangedFiles="true" />
 	</Target>
 
+	<Target Name="Graphviz">
+		<ReadLinesFromFile File="$(starts)" Condition=" '$(starts)' != '' ">
+			<Output ItemName="startNodes" TaskParameter="Lines" />
+		</ReadLinesFromFile>
+		<ReadLinesFromFile File="$(ends)" Condition=" '$(ends)' != '' ">
+			<Output ItemName="endNodes" TaskParameter="Lines" />
+		</ReadLinesFromFile>
+
+		<DependenceResolveTask InputProjects="@(startNodes)" RootDir="$(rootDir)" ExcludeNodes="@(ExcludeNodes)" ConfigFile="$(configFile)" 
+			RuntimeProfile="$(runtimeProfile)" Reverse="$(reverse)"  EndNodes="@(endNodes)" >
+			<Output TaskParameter="Dependences" ItemName="Dependences"/>
+		</DependenceResolveTask>
+		<Message Text="%(Dependences.Identity)>%(Dependences.To)" importance="high" />
+	</Target>
 
 	<Target Name="_readProjects" Outputs="@(projects)">
 		<ReadLinesFromFile File="$(file)" Condition=" '$(file)' != '' ">

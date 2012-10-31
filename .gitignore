@@ -16,4 +16,6 @@
 _ReSharper*
 
 # packages of nuget
-packages
+/packages
+
+/dependencies
