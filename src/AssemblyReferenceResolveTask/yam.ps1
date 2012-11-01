@@ -145,6 +145,9 @@ function Create-Graph([string[]] $starts, [string[]] $ends, $reverse, [string] $
         Get-InputProjects $ends | Set-Content $_[1]        
         $props = "rootDir=$fullCodebaseRoot;configFile=$configFile;starts=$($_[0]);ends=$($_[1]);reverse=$reverse;runtimeProfile=$runtimeProfile"
         $output = &$msbuild $root\yam.targets /t:Graphviz /p:"$props" /nologo /v:m
+        if ($LastExitCode -ne 0) {
+            throw "Error: MSBuild failed. $output"
+        }
         $result = $output | % {
             $lineItems = $_.trim().Split(">")
             $incomming = $lineItems[0].trim()
@@ -174,7 +177,7 @@ function Create-Graph([string[]] $starts, [string[]] $ends, $reverse, [string] $
         if (-not (Test-Path "$fullCodebaseRoot\dependencies")) {
             New-Item "$fullCodebaseRoot\dependencies" -Type Directory
         }
-        Set-Content $outputFile "digraph `"$fileName`"; {"
+        Set-Content $outputFile "digraph `"$fileName`" {"
         $result | %{ Add-Content $outputFile "  $_" } 
         Add-Content $outputFile "}"
 
