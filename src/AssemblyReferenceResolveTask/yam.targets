@@ -107,6 +107,18 @@
 		</DependenceResolveTask>
 		<Message Text="%(Dependences.Identity)>%(Dependences.To)" importance="high" />
 	</Target>
+	
+	<Target Name="ResolveCopyLocal">
+		<ItemGroup>
+			<DeployHintItems Include="$(deployHints.Split(';'))" />
+		</ItemGroup>
+		<CopyLocalDetectionTask RootDir="$(rootDir)" ConfigFile="$(ConfigFile)" DeployHints="@(DeployHintItems)" >
+			<Output ItemName="projectCopyLocals" TaskParameter="ProjectCopyLocals"/>
+		</CopyLocalDetectionTask>
+		<Message Text="%0D%0A%(projectCopyLocals.Identity) %0D%0A%(projectCopyLocals.CopyLocals)" Condition=" '%(projectCopyLocals.CopyLocals)' != '' "/>
+		<Error Text="All copy local settings must be fixed. " Condition=" '%(projectCopyLocals.CopyLocals)' != '' "/>
+	</Target>
+
 
 	<Target Name="_readProjects" Outputs="@(projects)">
 		<ReadLinesFromFile File="$(file)" Condition=" '$(file)' != '' ">

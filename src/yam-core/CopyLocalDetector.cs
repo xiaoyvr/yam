@@ -28,7 +28,12 @@ namespace Yam.Core
         private bool IsDeployNode(string project)
         {
             var directoryName = Path.GetDirectoryName(project);
-            return directoryName != null && deployHints.Any(h => File.Exists(Path.Combine(directoryName, h)));
+            return directoryName != null && deployHints.Any(h => ContainsHint(h, directoryName));
+        }
+
+        private bool ContainsHint(string hint, string dir)
+        {
+            return Directory.GetFiles(dir, hint, SearchOption.TopDirectoryOnly).Length > 0;
         }
 
         private static string[] GetCopyLocals(ResolveConfig config, string project)

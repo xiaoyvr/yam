@@ -190,6 +190,13 @@ function Create-Graph([string[]] $starts, [string[]] $ends, $reverse, [string] $
     }
 }
 
+function Resolve-CopyLocal(){
+	$deployHints = [System.String]::Join(';', $deployNodeHint)
+	$props = "rootDir=$fullCodebaseRoot;configFile=$configFile;deployHints=$deployHints"
+	& $msbuild $root\yam.targets /t:ResolveCopyLocal /p:"$props" /nologo
+
+}
+
 function Show-Help {
 @"
 write some help here. 
@@ -201,7 +208,8 @@ $start = Get-Date
 $msbuild = Get-MSBuild
 $root = $MyInvocation.MyCommand.Path | Split-Path -parent
 $codebaseRoot = "."
-. .\codebaseConfig.ps1
+$deployNodeHint = @("*.nuspec")
+. ".\codebaseConfig.ps1"
 $fullCodebaseRoot = Resolve-Path $codebaseRoot
 $configFile = "$fullCodebaseRoot\prj.config"
 
@@ -218,6 +226,9 @@ switch ($command){
     'graph'{
         Create-Graph $files $ends $reverse $runtimeProfile
     }
+	'cl' {
+		Resolve-CopyLocal
+	}
     'help'{
         Show-Help
     }
