@@ -187,6 +187,23 @@ namespace Test
         }
 
         [Fact]
+        public void should_not_merge_virtual_if_will_create_cycle()
+        {
+            var graph = new DAG<int>();
+            const int v1 = 1;
+            const int v2 = 2;
+            const int v3 = 3;
+            graph.AddMergePath(v3, v1);
+            graph.AddPath(v3, v2);
+            graph.AddPath(v2, v1);
+            graph.Simplify();
+            var ints = graph.Out();
+            Assert.Equal(1, ints[0]);            
+            Assert.Equal(2, ints[1]);            
+            Assert.Equal(3, ints[2]);            
+        }
+
+        [Fact]
         public void should_simplify_all_virtual()
         {
             var graph = new DAG<string>();

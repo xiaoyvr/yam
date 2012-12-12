@@ -192,9 +192,8 @@ function Create-Graph([string[]] $starts, [string[]] $ends, $reverse, [string] $
 
 function Resolve-CopyLocal(){
 	$deployHints = [System.String]::Join(';', $deployNodeHint)
-	$props = "rootDir=$fullCodebaseRoot;configFile=$configFile;deployHints=$deployHints"
+	$props = "rootDir=""$fullCodebaseRoot"";configFile=""$configFile"";deployHints=""$deployHints"""
 	& $msbuild $root\yam.targets /t:ResolveCopyLocal /p:"$props" /nologo
-
 }
 
 function Show-Help {
