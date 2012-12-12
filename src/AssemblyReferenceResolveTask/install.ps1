@@ -13,7 +13,13 @@ param(
     [string[]] `$ends, 
     [switch] `$reverse
 )
-
-& "$codebaseRootToMainScript" `$command `$files `$runtimeProfile `$ends `$reverse
+Push-Location
+Set-Location (`$MyInvocation.MyCommand.Path | Split-Path -Parent)
+try{
+    & "$codebaseRootToMainScript" `$command `$files `$runtimeProfile `$ends `$reverse
+}
+finally{
+    Pop-Location
+}
 "@
 Set-Content $codebaseDir\yam.ps1 $scriptText -Force
