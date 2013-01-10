@@ -208,7 +208,7 @@ $msbuild = Get-MSBuild
 $root = $MyInvocation.MyCommand.Path | Split-Path -parent
 $codebaseRoot = "."
 $deployNodeHint = @("*.nuspec")
-. ".\codebaseConfig.ps1"
+$codebaseConfig = & ".\codebaseConfig.ps1"
 $fullCodebaseRoot = Resolve-Path $codebaseRoot
 $configFile = "$fullCodebaseRoot\prj.config"
 
