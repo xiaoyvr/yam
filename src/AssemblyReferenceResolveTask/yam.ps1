@@ -209,6 +209,7 @@ $root = $MyInvocation.MyCommand.Path | Split-Path -parent
 $codebaseRoot = "."
 $deployNodeHint = @("*.nuspec")
 $codebaseConfig = & ".\codebaseConfig.ps1"
+$deployNodeHint += $codebaseConfig.extraDeployNodeHint
 $fullCodebaseRoot = Resolve-Path $codebaseRoot
 $configFile = "$fullCodebaseRoot\prj.config"
 
