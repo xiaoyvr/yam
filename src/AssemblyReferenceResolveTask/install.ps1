@@ -16,7 +16,7 @@ param(
 Push-Location
 Set-Location (`$MyInvocation.MyCommand.Path | Split-Path -Parent)
 try{
-    & "$codebaseRootToMainScript" `$command -files `$files -runtimeProfile `$runtimeProfile -ends `$ends -reverse `$reverse
+    & "$codebaseRootToMainScript" `$command -files `$files -runtimeProfile `$runtimeProfile -ends `$ends -reverse:`$reverse
 }
 finally{
     Pop-Location
