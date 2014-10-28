@@ -1,4 +1,4 @@
-yam
+yam [![Build status](https://ci.appveyor.com/api/projects/status/ehqm7um2smyg3hsq?svg=true)](https://ci.appveyor.com/project/xiaoyvr/yam)
 ===
 
 Yet another make for .net. A patch for MSBuild. 
